@@ -1,4 +1,4 @@
-var iFileName = "ua_20191104_Class-Feature-Variants.js";
+var iFileName = "all_WotC_pub+UA-3.js";
 RequiredSheetVersion(13),
   (SourceList["UA:CFV"] = {
     name: "Unearthed Arcana: Class Feature Variants",
@@ -41,10 +41,10 @@ RequiredSheetVersion(13),
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "bard" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "bard" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "cause fear-xgte",
                 "color spray",
                 "command",
@@ -124,10 +124,10 @@ RequiredSheetVersion(13),
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "cleric" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "cleric" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "cause fear-xgte",
                 "wrathful smite",
                 "branding smite",
@@ -159,15 +159,15 @@ RequiredSheetVersion(13),
     "Channel Divinity Enhancement"
   ),
   RunFunctionAtEnd(function () {
-    for (var e = 0; e < ClassList.cleric.subclasses[1].length; e++) {
-      var a = ClassSubList[ClassList.cleric.subclasses[1][e]];
-      a &&
-        a.features.subclassfeature8 &&
+    for (var i = 0; i < ClassList.cleric.subclasses[1].length; i++) {
+      var aDomain = ClassSubList[ClassList.cleric.subclasses[1][i]];
+      aDomain &&
+        aDomain.features.subclassfeature8 &&
         /divine strike|potent spellcasting/i.test(
-          a.features.subclassfeature8.name
+          aDomain.features.subclassfeature8.name
         ) &&
         CreateClassFeatureVariant(
-          ClassList.cleric.subclasses[1][e],
+          ClassList.cleric.subclasses[1][i],
           "subclassfeature8",
           "Blessed Strikes",
           {
@@ -179,12 +179,12 @@ RequiredSheetVersion(13),
             ]),
             calcChanges: {
               atkAdd: [
-                function (e, a) {
+                function (fields, v) {
                   classes.known.cleric &&
-                    7 < classes.known.cleric.level &&
-                    !a.isDC &&
-                    (e.Description +=
-                      (e.Description ? "; " : "") +
+                    classes.known.cleric.level > 7 &&
+                    !v.isDC &&
+                    (fields.Description +=
+                      (fields.Description ? "; " : "") +
                       "Once per round +1d8 radiant damage");
                 },
                 "Once per turn when a creature takes damage from one of my spell or weapon attacks, I can also deal 1d8 radiant damage to the target.",
@@ -216,10 +216,10 @@ RequiredSheetVersion(13),
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "druid" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "druid" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "ceremony-xgte",
                 "protection from evil and good",
                 "augury",
@@ -254,8 +254,8 @@ var wildCompanionObject = {
     "I can expend a use of wild shape to cast Find Familiar without material components",
     "The familiar always has the Fey type and disappears after half my druid level in hours",
   ]),
-  additional: levels.map(function (e) {
-    return e < 2 ? "" : Math.floor(e / 2) + " hours";
+  additional: levels.map(function (n) {
+    return n < 2 ? "" : Math.floor(n / 2) + " hours";
   }),
   spellcastingBonus: {
     name: "Wild Companion",
@@ -331,12 +331,12 @@ AddFeatureChoice(
     ]),
     calcChanges: {
       atkAdd: [
-        function (e, a) {
-          a.isMeleeWeapon &&
-            /thrown/i.test(e.Description) &&
-            a.isMeleeWeapon &&
-            (e.Description +=
-              (e.Description ? "; " : "") + "+1 damage when thrown");
+        function (fields, v) {
+          v.isMeleeWeapon &&
+            /thrown/i.test(fields.Description) &&
+            v.isMeleeWeapon &&
+            (fields.Description +=
+              (fields.Description ? "; " : "") + "+1 damage when thrown");
         },
         "I deal +1 damage when I hit a ranged attack made with a thrown weapon.",
       ],
@@ -352,11 +352,12 @@ AddFeatureChoice(
     ]),
     calcChanges: {
       atkAdd: [
-        function (e, a) {
-          "unarmed strike" == a.baseWeaponName &&
-            ((1 != e.Damage_Die && "1d4" != e.Damage_Die) ||
-              (e.Damage_Die = "1d6"),
-            (e.Description += (e.Description ? "; " : "") + "Versatile (d8)"));
+        function (fields, v) {
+          "unarmed strike" == v.baseWeaponName &&
+            ((1 != fields.Damage_Die && "1d4" != fields.Damage_Die) ||
+              (fields.Damage_Die = "1d6"),
+            (fields.Description +=
+              (fields.Description ? "; " : "") + "Versatile (d8)"));
         },
         "My unarmed strikes deal 1d6 damage instead of 1, which increases to 1d8 if I have both hands free to make an unarmed strike with.",
       ],
@@ -519,44 +520,54 @@ AddFeatureChoice(
     removeeval: function () {
       ClassList.monk.features["martial arts"].extrachoicesNotInMenu = !0;
       for (
-        var e = GetFeatureChoice("classes", "monk", "martial arts", !0), a = 0;
-        a < e.length;
-        a++
+        var monkWeapons = GetFeatureChoice(
+            "classes",
+            "monk",
+            "martial arts",
+            !0
+          ),
+          i = 0;
+        i < monkWeapons.length;
+        i++
       )
-        ClassFeatureOptions(["monk", "martial arts", e[a], "extra"], "remove");
+        ClassFeatureOptions(
+          ["monk", "martial arts", monkWeapons[i], "extra"],
+          "remove"
+        );
     },
     calcChanges: {
       atkAdd: [
-        function (e, a) {
-          var t,
-            n = ["unarmed strike"].concat(
+        function (fields, v) {
+          var monkWeapons = ["unarmed strike"].concat(
               GetFeatureChoice("classes", "monk", "martial arts", !0)
-            );
+            ),
+            n;
           if (
             classes.known.monk &&
             classes.known.monk.level &&
-            (-1 != n.indexOf(a.baseWeaponName) ||
-              /monk weapon/i.test(a.WeaponText))
+            (-1 != monkWeapons.indexOf(v.baseWeaponName) ||
+              /monk weapon/i.test(v.WeaponText))
           ) {
-            var i =
-              (t = classes.known.monk.level) < 5
+            var aMonkDie =
+              (n = classes.known.monk.level) < 5
                 ? 4
-                : t < 11
+                : n < 11
                 ? 6
-                : t < 17
+                : n < 17
                 ? 8
                 : 10;
             try {
-              var o = eval_ish(e.Damage_Die.replace("d", "*"));
+              var curDie = eval_ish(fields.Damage_Die.replace("d", "*"));
             } catch (e) {
-              o = "x";
+              var curDie = "x";
             }
-            (isNaN(o) || o < i) && (e.Damage_Die = "1d" + i),
-              (1 == e.Mod ||
-                2 == e.Mod ||
-                What(AbilityScores.abbreviations[e.Mod - 1] + " Mod") <
-                  What(AbilityScores.abbreviations[a.StrDex - 1] + " Mod")) &&
-                (e.Mod = a.StrDex);
+            (isNaN(curDie) || curDie < aMonkDie) &&
+              (fields.Damage_Die = "1d" + aMonkDie),
+              (1 == fields.Mod ||
+                2 == fields.Mod ||
+                What(AbilityScores.abbreviations[fields.Mod - 1] + " Mod") <
+                  What(AbilityScores.abbreviations[v.StrDex - 1] + " Mod")) &&
+                (fields.Mod = v.StrDex);
           }
         },
         "I can use either Strength or Dexterity and my Martial Arts damage die in place of the normal damage die for any 'Monk Weapons', which include unarmed strike and 5 + my Wisdom modifier of simple or martial weapons of my choice that I'm proficient with and that don't have the two-handed, heavy, or special property.\n   I can select these weapon using the \"Choose Feature\" button on the 2nd page, or have them count as such by including the words \"Monk Weapon\" in the name of the weapon.",
@@ -571,37 +582,37 @@ var origMartialArts = ClassList.monk.features["martial arts"];
     "choose monk weapons" !=
     GetFeatureChoice("classes", "monk", "martial arts")),
   RunFunctionAtEnd(function () {
-    for (var e in WeaponsList) {
-      var a = WeaponsList[e];
-      a.isMagicWeapon ||
-        !/simple|martial/i.test(a.type) ||
+    for (var weapon in WeaponsList) {
+      var aWea = WeaponsList[weapon];
+      aWea.isMagicWeapon ||
+        !/simple|martial/i.test(aWea.type) ||
         /heavy|special|((^|[^+-]\b)2|\btwo).?hand(ed)?s?/i.test(
-          a.description
+          aWea.description
         ) ||
-        /spell|cantrip/i.test(a.list) ||
-        (origMartialArts.extrachoices.push(a.name),
-        (origMartialArts[a.name.toLowerCase()] = {
-          name: a.name,
+        /spell|cantrip/i.test(aWea.list) ||
+        (origMartialArts.extrachoices.push(aWea.name),
+        (origMartialArts[aWea.name.toLowerCase()] = {
+          name: aWea.name,
           description: "",
-          source: a.source,
-          weaponsAdd: [a.name],
+          source: aWea.source,
+          weaponsAdd: [aWea.name],
           prereqeval:
             'testSource("' +
-            e +
+            weapon +
             '", WeaponsList["' +
-            e +
+            weapon +
             '"], "weapExcl") ? "skip" : isProficientWithWeapon("' +
-            e +
+            weapon +
             '", WeaponsList["' +
-            e +
+            weapon +
             '"]);',
         }));
     }
   }),
   origMartialArts["[original] martial arts"] &&
-    ["additional", "action", "eval", "removeeval"].forEach(function (e) {
-      (origMartialArts[e] = origMartialArts["[original] martial arts"][e]),
-        delete origMartialArts["[original] martial arts"][e];
+    ["additional", "action", "eval", "removeeval"].forEach(function (n) {
+      (origMartialArts[n] = origMartialArts["[original] martial arts"][n]),
+        delete origMartialArts["[original] martial arts"][n];
     }),
   AddFeatureChoice(
     ClassList.monk.features.ki,
@@ -677,10 +688,10 @@ var origMartialArts = ClassList.monk.features["martial arts"];
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "paladin" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "paladin" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "gentle repose",
                 "prayer of healing",
                 "warding bond",
@@ -709,9 +720,11 @@ var origMartialArts = ClassList.monk.features["martial arts"];
     },
     "Channel Divinity Enhancement"
   );
-var origNatExplNm =
-  "[original] " +
-  (origNatExpl = ClassList.ranger.features["natural explorer"]).name;
+var origNatExpl,
+  origNatExplNm =
+    "[original] " +
+    (origNatExpl = ClassList.ranger.features["natural explorer"]).name,
+  origNatExplCurSel;
 (origNatExpl.choices = [origNatExplNm]),
   (origNatExpl.defaultChoice = origNatExplNm.toLowerCase()),
   (origNatExpl[origNatExplNm.toLowerCase()] = {
@@ -730,20 +743,27 @@ var origNatExplNm =
   (origNatExpl.name = origNatExpl.name + " or a Variant"),
   (origNatExpl.resetNatExplExtrachoices = function () {
     for (
-      var e = GetFeatureChoice("classes", "ranger", "natural explorer", !0),
-        a = ClassList.ranger.features["natural explorer"].extraname,
-        t = 0;
-      t < e.length;
-      t++
+      var extraSel = GetFeatureChoice(
+          "classes",
+          "ranger",
+          "natural explorer",
+          !0
+        ),
+        curExtraName = ClassList.ranger.features["natural explorer"].extraname,
+        i = 0;
+      i < extraSel.length;
+      i++
     )
-      "travel benefits" == e[t] &&
+      "travel benefits" == extraSel[i] &&
         (ClassList.ranger.features["natural explorer"].extraname = "Ranger 1"),
         ClassFeatureOptions(
-          ["ranger", "natural explorer", e[t], "extra"],
+          ["ranger", "natural explorer", extraSel[i], "extra"],
           "remove"
         ),
-        "travel benefits" == e[t] &&
-          (ClassList.ranger.features["natural explorer"].extraname = a);
+        "travel benefits" == extraSel[i] &&
+          (ClassList.ranger.features[
+            "natural explorer"
+          ].extraname = curExtraName);
   }),
   AddFeatureChoice(origNatExpl, !1, "Deft Explorer", {
     name: "Deft Explorer",
@@ -751,35 +771,41 @@ var origNatExplNm =
     description:
       '\n   Use the "Choose Feature" button above to add a deft explorer benefit to the third page',
     eval: function () {
-      var e = ClassList.ranger.features["natural explorer"];
-      e.resetNatExplExtrachoices(),
-        (e.extraname = e["deft explorer"].extraname),
-        (e.extrachoices = e["deft explorer"].extrachoices),
-        (e.extraTimes = e["deft explorer"].extraTimes);
+      var natExplFea = ClassList.ranger.features["natural explorer"];
+      natExplFea.resetNatExplExtrachoices(),
+        (natExplFea.extraname = natExplFea["deft explorer"].extraname),
+        (natExplFea.extrachoices = natExplFea["deft explorer"].extrachoices),
+        (natExplFea.extraTimes = natExplFea["deft explorer"].extraTimes);
     },
-    removeeval: function (e, a) {
-      var t = ClassList.ranger.features["natural explorer"],
-        n = a[1];
-      t.resetNatExplExtrachoices(),
-        -1 !== n.indexOf("[original]") &&
-          ((t.extraname = "Ranger 1"),
+    removeeval: function (lvlA, choiceA) {
+      var natExplFea = ClassList.ranger.features["natural explorer"],
+        newChoice = choiceA[1];
+      natExplFea.resetNatExplExtrachoices(),
+        -1 !== newChoice.indexOf("[original]") &&
+          ((natExplFea.extraname = "Ranger 1"),
           ClassFeatureOptions([
             "ranger",
             "natural explorer",
             "travel benefits",
             "extra",
           ])),
-        n &&
-          t[n] &&
-          ((t.extraname = t[n].extraname ? t[n].extraname : ""),
-          (t.extrachoices = t[n].extrachoices ? t[n].extrachoices : ""),
-          (t.extraTimes = t[n].extraTimes ? t[n].extraTimes : ""));
+        newChoice &&
+          natExplFea[newChoice] &&
+          ((natExplFea.extraname = natExplFea[newChoice].extraname
+            ? natExplFea[newChoice].extraname
+            : ""),
+          (natExplFea.extrachoices = natExplFea[newChoice].extrachoices
+            ? natExplFea[newChoice].extrachoices
+            : ""),
+          (natExplFea.extraTimes = natExplFea[newChoice].extraTimes
+            ? natExplFea[newChoice].extraTimes
+            : ""));
     },
-    additional: levels.map(function (e) {
-      return e < 6 ? "1 benefit" : (e < 10 ? 2 : 3) + " benefits";
+    additional: levels.map(function (n) {
+      return n < 6 ? "1 benefit" : (n < 10 ? 2 : 3) + " benefits";
     }),
-    extraTimes: levels.map(function (e) {
-      return e < 6 ? 1 : e < 10 ? 2 : 3;
+    extraTimes: levels.map(function (n) {
+      return n < 6 ? 1 : n < 10 ? 2 : 3;
     }),
     extraname: "Deft Explorer Benefit",
     extrachoices: ["Canny", "Roving", "Tireless"],
@@ -834,9 +860,10 @@ var origNatExplNm =
     (origNatExpl.extraTimes = origNatExpl[origNatExplCurSel].extraTimes
       ? origNatExpl[origNatExplCurSel].extraTimes
       : ""));
-var origFavoredEnemyNm =
-  "[original] " +
-  (origFavoredEnemy = ClassList.ranger.features["favored enemy"]).name;
+var origFavoredEnemy,
+  origFavoredEnemyNm =
+    "[original] " +
+    (origFavoredEnemy = ClassList.ranger.features["favored enemy"]).name;
 (origFavoredEnemy.choices = [origFavoredEnemyNm]),
   (origFavoredEnemy.defaultChoice = origFavoredEnemyNm.toLowerCase()),
   (origFavoredEnemy[origFavoredEnemyNm.toLowerCase()] = {
@@ -868,13 +895,17 @@ if (
     eval: function () {
       ClassList.ranger.features["favored enemy"].extrachoicesNotInMenu = !0;
       for (
-        var e = GetFeatureChoice("classes", "ranger', 'favored enemy", !0),
-          a = 0;
-        a < e.length;
-        a++
+        var favEnemies = GetFeatureChoice(
+            "classes",
+            "ranger', 'favored enemy",
+            !0
+          ),
+          i = 0;
+        i < favEnemies.length;
+        i++
       )
         ClassFeatureOptions(
-          ["ranger", "favored enemy", e[a], "extra"],
+          ["ranger", "favored enemy", favEnemies[i], "extra"],
           "remove"
         );
     },
@@ -892,11 +923,11 @@ if (
     recovery: "long rest",
     calcChanges: {
       spellList: [
-        function (e, a, t) {
-          "ranger" == a &&
-            -1 == t.indexOf("bonus") &&
-            (e.notspells || (e.notspells = []),
-            (e.notspells = e.notspells.concat(["hunter's mark"])));
+        function (spList, spName, spType) {
+          "ranger" == spName &&
+            -1 == spType.indexOf("bonus") &&
+            (spList.notspells || (spList.notspells = []),
+            (spList.notspells = spList.notspells.concat(["hunter's mark"])));
         },
       ],
     },
@@ -937,10 +968,10 @@ if (
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "ranger" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "ranger" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "aid",
                 "entangle",
                 "searing smite",
@@ -1001,9 +1032,10 @@ if (
       ]),
       calcChanges: {
         spellAdd: [
-          function (e, a, t) {
+          function (spellKey, spellObj, spName) {
+            var bonusSpells;
             if (
-              "ranger" == t &&
+              "ranger" == spName &&
               -1 !=
                 [
                   "detect magic",
@@ -1013,17 +1045,17 @@ if (
                   "speak with plants",
                   "locate creature",
                   "commune with nature",
-                ].indexOf(e)
+                ].indexOf(spellKey)
             )
-              return (a.firstCol = "oncelr"), !0;
+              return (spellObj.firstCol = "oncelr"), !0;
           },
           "I can cast these spells each once per long rest without expending a spell slot, but also as normal by expending a spell slot.",
         ],
         spellList: [
-          function (e, a, t) {
-            "ranger" == a &&
-              (e.notspells || (e.notspells = []),
-              (e.notspells = e.notspells.concat([
+          function (spList, spName, spType) {
+            "ranger" == spName &&
+              (spList.notspells || (spList.notspells = []),
+              (spList.notspells = spList.notspells.concat([
                 "detect magic",
                 "speak with animals",
                 "beast sense",
@@ -1038,7 +1070,7 @@ if (
       },
       changeeval: function () {
         if (CurrentSpells.ranger) {
-          var e = [
+          var bonusSpells = [
             "detect magic",
             "speak with animals",
             "beast sense",
@@ -1049,24 +1081,30 @@ if (
           ];
           if (
             (CurrentSpells.ranger.extra || (CurrentSpells.ranger.extra = []),
-            -1 == CurrentSpells.ranger.extra.toString().indexOf(e.toString()))
+            -1 ==
+              CurrentSpells.ranger.extra
+                .toString()
+                .indexOf(bonusSpells.toString()))
           ) {
             for (
-              var a = [], t = 0;
-              t < CurrentSpells.ranger.extra.length;
-              t++
+              var newExtra = [], i = 0;
+              i < CurrentSpells.ranger.extra.length;
+              i++
             ) {
-              var n = CurrentSpells.ranger.extra[t];
-              n && "AddToKnown" !== n && -1 == e.indexOf(n) && a.push(n);
+              var anExtra = CurrentSpells.ranger.extra[i];
+              anExtra &&
+                "AddToKnown" !== anExtra &&
+                -1 == bonusSpells.indexOf(anExtra) &&
+                newExtra.push(anExtra);
             }
-            (CurrentSpells.ranger.extra = a.concat(e)),
+            (CurrentSpells.ranger.extra = newExtra.concat(bonusSpells)),
               (CurrentSpells.ranger.extra[100] = "AddToKnown");
           }
         }
       },
       removeeval: function () {
         if (CurrentSpells.ranger && CurrentSpells.ranger.extra) {
-          var e = [
+          var bonusSpells = [
             "detect magic",
             "speak with animals",
             "beast sense",
@@ -1076,14 +1114,17 @@ if (
             "commune with nature",
           ];
           if (
-            -1 !== CurrentSpells.ranger.extra.toString().indexOf(e.toString())
+            -1 !==
+            CurrentSpells.ranger.extra
+              .toString()
+              .indexOf(bonusSpells.toString())
           ) {
-            var a = CurrentSpells.ranger.extra
+            var newExtra = CurrentSpells.ranger.extra
               .join("##")
-              .replace(e.join("##"), "")
+              .replace(bonusSpells.join("##"), "")
               .replace("AddToKnown", "")
               .replace(/#+$/, "");
-            (CurrentSpells.ranger.extra = a.split("##")),
+            (CurrentSpells.ranger.extra = newExtra.split("##")),
               (CurrentSpells.ranger.extra[100] = "AddToKnown");
           }
         }
@@ -1171,24 +1212,24 @@ if (
           "The beast doesn't provoke opportunity attacks when it flies out of an enemy's reach.",
       },
     ],
-    eval: function (e) {
+    eval: function (prefix) {
       tDoc
-        .getField(e + "Comp.Use.HP.Max")
+        .getField(prefix + "Comp.Use.HP.Max")
         .setAction(
           "Calculate",
           "event.value = (classes.known.ranger ? classes.known.ranger.level : classes.known.rangerua ? classes.known.rangerua.level : 1) * 5 + What('Wis Mod') + What(event.target.name.replace('HP.Max', 'Ability.Con.Mod'));"
         ),
         tDoc
-          .getField(e + "Comp.Use.HD.Level")
+          .getField(prefix + "Comp.Use.HD.Level")
           .setAction(
             "Calculate",
             "event.value = classes.known.ranger ? classes.known.ranger.level : classes.known.rangerua ? classes.known.rangerua.level : 1;"
           );
     },
-    removeeval: function (e) {
-      e &&
-        (tDoc.getField(e + "Comp.Use.HP.Max").setAction("Calculate", ""),
-        tDoc.getField(e + "Comp.Use.HD.Level").setAction("Calculate", ""));
+    removeeval: function (prefix) {
+      prefix &&
+        (tDoc.getField(prefix + "Comp.Use.HP.Max").setAction("Calculate", ""),
+        tDoc.getField(prefix + "Comp.Use.HD.Level").setAction("Calculate", ""));
     },
   }),
   (CreatureList["beast of the earth"] = {
@@ -1245,33 +1286,34 @@ if (
           "If the beast moves at least 20 ft straight toward a target and then hits it with a maul attack on the same turn, the target takes an extra 1d6 slashing damage. If the target is a creature, it must succeed on a Strength saving throw against my spell save DC or be knocked prone.",
       },
     ],
-    eval: function (e) {
+    eval: function (prefix) {
       tDoc
-        .getField(e + "Comp.Use.HP.Max")
+        .getField(prefix + "Comp.Use.HP.Max")
         .setAction(
           "Calculate",
           "event.value = (classes.known.ranger ? classes.known.ranger.level : classes.known.rangerua ? classes.known.rangerua.level : 1) * 5 + What('Wis Mod') + What(event.target.name.replace('HP.Max', 'Ability.Con.Mod'));"
         ),
         tDoc
-          .getField(e + "Comp.Use.HD.Level")
+          .getField(prefix + "Comp.Use.HD.Level")
           .setAction(
             "Calculate",
             "event.value = classes.known.ranger ? classes.known.ranger.level : classes.known.rangerua ? classes.known.rangerua.level : 1;"
           );
     },
-    removeeval: function (e) {
-      e &&
-        (tDoc.getField(e + "Comp.Use.HP.Max").setAction("Calculate", ""),
-        tDoc.getField(e + "Comp.Use.HD.Level").setAction("Calculate", ""));
+    removeeval: function (prefix) {
+      prefix &&
+        (tDoc.getField(prefix + "Comp.Use.HP.Max").setAction("Calculate", ""),
+        tDoc.getField(prefix + "Comp.Use.HD.Level").setAction("Calculate", ""));
     },
   }),
   ClassList.rangerua)
 ) {
-  var origNatExpl, origNatExplCurSel;
-  (origNatExplNm =
-    "[original] " +
-    (origNatExpl = ClassList.rangerua.features["natural explorer"]).name),
-    (origNatExpl.choices = [origNatExplNm]),
+  var origNatExpl,
+    origNatExplNm =
+      "[original] " +
+      (origNatExpl = ClassList.rangerua.features["natural explorer"]).name,
+    origNatExplCurSel;
+  (origNatExpl.choices = [origNatExplNm]),
     (origNatExpl.defaultChoice = origNatExplNm.toLowerCase()),
     (origNatExpl[origNatExplNm.toLowerCase()] = {
       name: origNatExpl.name,
@@ -1286,13 +1328,18 @@ if (
     (origNatExpl.name = origNatExpl.name + " or a Variant"),
     (origNatExpl.resetNatExplExtrachoices = function () {
       for (
-        var e = GetFeatureChoice("classes", "rangerua", "natural explorer", !0),
-          a = 0;
-        a < e.length;
-        a++
+        var extraSel = GetFeatureChoice(
+            "classes",
+            "rangerua",
+            "natural explorer",
+            !0
+          ),
+          i = 0;
+        i < extraSel.length;
+        i++
       )
         ClassFeatureOptions(
-          ["rangerua", "natural explorer", e[a], "extra"],
+          ["rangerua", "natural explorer", extraSel[i], "extra"],
           "remove"
         );
     }),
@@ -1302,22 +1349,28 @@ if (
       description:
         '\n   Use the "Choose Feature" button above to add a deft explorer benefit to the third page',
       eval: function () {
-        var e = ClassList.rangerua.features["natural explorer"];
-        e.resetNatExplExtrachoices(),
-          (e.extraname = e["deft explorer"].extraname),
-          (e.extrachoices = e["deft explorer"].extrachoices),
-          (e.extraTimes = e["deft explorer"].extraTimes);
+        var natExplFea = ClassList.rangerua.features["natural explorer"];
+        natExplFea.resetNatExplExtrachoices(),
+          (natExplFea.extraname = natExplFea["deft explorer"].extraname),
+          (natExplFea.extrachoices = natExplFea["deft explorer"].extrachoices),
+          (natExplFea.extraTimes = natExplFea["deft explorer"].extraTimes);
       },
-      removeeval: function (e, a) {
-        var t = ClassList.rangerua.features["natural explorer"],
-          n = a[1];
-        t.resetNatExplExtrachoices(),
-          n &&
-            t[n] &&
-            ((t.extraname = t[n].extraname ? t[n].extraname : ""),
-            (t.extrachoices = t[n].extrachoices ? t[n].extrachoices : ""),
-            (t.extraTimes = t[n].extraTimes ? t[n].extraTimes : ""),
-            -1 !== n.indexOf("[original]") &&
+      removeeval: function (lvlA, choiceA) {
+        var natExplFea = ClassList.rangerua.features["natural explorer"],
+          newChoice = choiceA[1];
+        natExplFea.resetNatExplExtrachoices(),
+          newChoice &&
+            natExplFea[newChoice] &&
+            ((natExplFea.extraname = natExplFea[newChoice].extraname
+              ? natExplFea[newChoice].extraname
+              : ""),
+            (natExplFea.extrachoices = natExplFea[newChoice].extrachoices
+              ? natExplFea[newChoice].extrachoices
+              : ""),
+            (natExplFea.extraTimes = natExplFea[newChoice].extraTimes
+              ? natExplFea[newChoice].extraTimes
+              : ""),
+            -1 !== newChoice.indexOf("[original]") &&
               ClassFeatureOptions([
                 "rangerua",
                 "natural explorer",
@@ -1325,11 +1378,11 @@ if (
                 "extra",
               ]));
       },
-      additional: levels.map(function (e) {
-        return e < 6 ? "1 benefit" : (e < 10 ? 2 : 3) + " benefits";
+      additional: levels.map(function (n) {
+        return n < 6 ? "1 benefit" : (n < 10 ? 2 : 3) + " benefits";
       }),
-      extraTimes: levels.map(function (e) {
-        return e < 6 ? 1 : e < 10 ? 2 : 3;
+      extraTimes: levels.map(function (n) {
+        return n < 6 ? 1 : n < 10 ? 2 : 3;
       }),
       extraname: "Deft Explorer Benefit",
       extrachoices: ["Canny", "Roving", "Tireless"],
@@ -1387,14 +1440,16 @@ if (
   var origFavoredEnemy = ClassList.rangerua.features["favored enemy"],
     moveOrigFavoredEnemyAttributes = (function () {
       for (
-        var e = ["additional", "languageProfs", "calcChanges"], a = 0;
-        a < e.length;
-        a++
+        var attr = ["additional", "languageProfs", "calcChanges"], j = 0;
+        j < attr.length;
+        j++
       ) {
-        for (var t = 0; t < origFavoredEnemy.choices.length; t++)
-          origFavoredEnemy[origFavoredEnemy.choices[t].toLowerCase()][e[a]] =
-            origFavoredEnemy[e[a]];
-        delete origFavoredEnemy[e[a]];
+        for (var i = 0; i < origFavoredEnemy.choices.length; i++) {
+          var aCh;
+          origFavoredEnemy[origFavoredEnemy.choices[i].toLowerCase()][attr[j]] =
+            origFavoredEnemy[attr[j]];
+        }
+        delete origFavoredEnemy[attr[j]];
       }
     })();
   AddFeatureChoice(origFavoredEnemy, !1, "[alternative feature] Favored Foe", {
@@ -1416,11 +1471,11 @@ if (
     recovery: "long rest",
     calcChanges: {
       spellList: [
-        function (e, a, t) {
-          "uaranger" == a &&
-            -1 == t.indexOf("bonus") &&
-            (e.notspells || (e.notspells = []),
-            (e.notspells = e.notspells.concat(["hunter's mark"])));
+        function (spList, spName, spType) {
+          "uaranger" == spName &&
+            -1 == spType.indexOf("bonus") &&
+            (spList.notspells || (spList.notspells = []),
+            (spList.notspells = spList.notspells.concat(["hunter's mark"])));
         },
       ],
     },
@@ -1447,10 +1502,10 @@ if (
         description: "",
         calcChanges: {
           spellList: [
-            function (e, a, t) {
-              "rangerua" === a &&
-                -1 === t.indexOf("bonus") &&
-                (e.extraspells = e.extraspells.concat([
+            function (spList, spName, spType) {
+              "rangerua" === spName &&
+                -1 === spType.indexOf("bonus") &&
+                (spList.extraspells = spList.extraspells.concat([
                   "aid",
                   "entangle",
                   "searing smite",
@@ -1511,9 +1566,10 @@ if (
         ]),
         calcChanges: {
           spellAdd: [
-            function (e, a, t) {
+            function (spellKey, spellObj, spName) {
+              var bonusSpells;
               if (
-                "rangerua" == t &&
+                "rangerua" == spName &&
                 -1 !=
                   [
                     "detect magic",
@@ -1523,17 +1579,17 @@ if (
                     "speak with plants",
                     "locate creature",
                     "commune with nature",
-                  ].indexOf(e)
+                  ].indexOf(spellKey)
               )
-                return (a.firstCol = "oncelr"), !0;
+                return (spellObj.firstCol = "oncelr"), !0;
             },
             "I can cast these spells each once per long rest without expending a spell slot, but also as normal by expending a spell slot.",
           ],
           spellList: [
-            function (e, a, t) {
-              "rangerua" == a &&
-                (e.notspells || (e.notspells = []),
-                (e.notspells = e.notspells.concat([
+            function (spList, spName, spType) {
+              "rangerua" == spName &&
+                (spList.notspells || (spList.notspells = []),
+                (spList.notspells = spList.notspells.concat([
                   "detect magic",
                   "speak with animals",
                   "beast sense",
@@ -1548,7 +1604,7 @@ if (
         },
         changeeval: function () {
           if (CurrentSpells.rangerua) {
-            var e = [
+            var bonusSpells = [
               "detect magic",
               "speak with animals",
               "beast sense",
@@ -1561,24 +1617,29 @@ if (
               (CurrentSpells.rangerua.extra ||
                 (CurrentSpells.rangerua.extra = []),
               -1 ==
-                CurrentSpells.rangerua.extra.toString().indexOf(e.toString()))
+                CurrentSpells.rangerua.extra
+                  .toString()
+                  .indexOf(bonusSpells.toString()))
             ) {
               for (
-                var a = [], t = 0;
-                t < CurrentSpells.rangerua.extra.length;
-                t++
+                var newExtra = [], i = 0;
+                i < CurrentSpells.rangerua.extra.length;
+                i++
               ) {
-                var n = CurrentSpells.rangerua.extra[t];
-                n && "AddToKnown" !== n && -1 == e.indexOf(n) && a.push(n);
+                var anExtra = CurrentSpells.rangerua.extra[i];
+                anExtra &&
+                  "AddToKnown" !== anExtra &&
+                  -1 == bonusSpells.indexOf(anExtra) &&
+                  newExtra.push(anExtra);
               }
-              (CurrentSpells.rangerua.extra = a.concat(e)),
+              (CurrentSpells.rangerua.extra = newExtra.concat(bonusSpells)),
                 (CurrentSpells.rangerua.extra[100] = "AddToKnown");
             }
           }
         },
         removeeval: function () {
           if (CurrentSpells.rangerua && CurrentSpells.rangerua.extra) {
-            var e = [
+            var bonusSpells = [
               "detect magic",
               "speak with animals",
               "beast sense",
@@ -1589,14 +1650,16 @@ if (
             ];
             if (
               -1 !==
-              CurrentSpells.rangerua.extra.toString().indexOf(e.toString())
+              CurrentSpells.rangerua.extra
+                .toString()
+                .indexOf(bonusSpells.toString())
             ) {
-              var a = CurrentSpells.rangerua.extra
+              var newExtra = CurrentSpells.rangerua.extra
                 .join("##")
-                .replace(e.join("##"), "")
+                .replace(bonusSpells.join("##"), "")
                 .replace("AddToKnown", "")
                 .replace(/#+$/, "");
-              (CurrentSpells.rangerua.extra = a.split("##")),
+              (CurrentSpells.rangerua.extra = newExtra.split("##")),
                 (CurrentSpells.rangerua.extra[100] = "AddToKnown");
             }
           }
@@ -1640,10 +1703,10 @@ AddFeatureChoice(
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "sorcerer" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "sorcerer" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "primal savagery-xgte",
                 "grease",
                 "protection from evil and good",
@@ -1774,11 +1837,11 @@ AddFeatureChoice(
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "warlock" === a &&
-              (-1 === t.indexOf("bonus") ||
-                (e.class && "warlock" === e.class)) &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "warlock" === spName &&
+              (-1 === spType.indexOf("bonus") ||
+                (spList.class && "warlock" === spList.class)) &&
+              (spList.extraspells = spList.extraspells.concat([
                 "thunderwave",
                 "knock",
                 "animate dead",
@@ -1815,9 +1878,9 @@ AddFeatureChoice(
         "As an action, I can teleport to the unoccupied space closest to the wearer of my talisman",
         "The talisman's wearer can do the same to teleport to me; Only works if both on same plane",
       ]),
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
-          12 <= classes.known.warlock.level &&
+          classes.known.warlock.level >= 12 &&
           "pact of the talisman" ==
             GetFeatureChoice("class", "warlock", "pact boon")
         );
@@ -1834,9 +1897,9 @@ AddFeatureChoice(
       source: ["UA:CFV", 11],
       description:
         "\n   As a bonus action, I can command my familiar to make one attack",
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
-          9 <= classes.known.warlock.level &&
+          classes.known.warlock.level >= 9 &&
           "pact of the chain" ==
             GetFeatureChoice("class", "warlock", "pact boon")
         );
@@ -1855,7 +1918,7 @@ AddFeatureChoice(
         "As an action, I can touch an unattended suit of armor and instantly don it",
         "I am proficient with this suit of armor until it is removed",
       ]),
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
           "pact of the blade" ==
           GetFeatureChoice("class", "warlock", "pact boon")
@@ -1873,7 +1936,7 @@ AddFeatureChoice(
       source: ["UA:CFV", 11],
       description:
         "\n   I have advantage on my Constitution saving throws to maintain concentration on a spell",
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
           "pact of the tome" ==
           GetFeatureChoice("class", "warlock", "pact boon")
@@ -1896,9 +1959,9 @@ AddFeatureChoice(
         "Instead of saying the message, I write it on the page and any reply appears there as well",
         "This writing disappears after 1 minute; The target still hears the message in their mind",
       ]),
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
-          5 <= classes.known.warlock.level &&
+          classes.known.warlock.level >= 5 &&
           "pact of the tome" ==
             GetFeatureChoice("class", "warlock", "pact boon")
         );
@@ -1935,9 +1998,9 @@ AddFeatureChoice(
         "If a creature whose name is on the page drops to 0 HP, it magically drops to 1 HP instead",
         "This doesn't work if the creature would be killed outright",
       ]),
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
-          9 <= classes.known.warlock.level &&
+          classes.known.warlock.level >= 9 &&
           "pact of the tome" ==
             GetFeatureChoice("class", "warlock", "pact boon")
         );
@@ -1962,27 +2025,26 @@ AddFeatureChoice(
         "• If it forces a creature to make a saving throw, it uses my spell save DC",
         "Note that the automation will only add this to current familiars and on a level change",
       ]),
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
           "pact of the chain" ==
           GetFeatureChoice("class", "warlock", "pact boon")
         );
       },
-      changeeval: function (e) {
-        var a =
+      changeeval: function (lvlA) {
+        var AScompA =
           !!isTemplVis("AScomp") && What("Template.extras.AScomp").split(",");
-        if (a)
+        if (AScompA)
           for (
-            var t = e[1] ? AddString : RemoveString, n = 1;
-            n < a.length;
-            n++
-          )
-            "Familiar" == What(a[n] + "Comp.Type") &&
-              t(
-                a[n] + "Cnote.Left",
+            var aStr =
                 "My Investment of the Chain Master eldritch invocation grants my familiar the following:\n• The familiar gains a flying or swimming speed of 40 ft (my choice at casting)\n• The familiar no longer needs to breathe\n• Its weapon attacks are considered magical for overcoming immunities and resistances\n• If the familiar forces a creature to make a saving throw, it uses my spell save DC",
-                !0
-              );
+              aFnc = lvlA[1] ? AddString : RemoveString,
+              a = 1;
+            a < AScompA.length;
+            a++
+          )
+            "Familiar" == What(AScompA[a] + "Comp.Type") &&
+              aFnc(AScompA[a] + "Cnote.Left", aStr, !0);
       },
     }
   ),
@@ -1995,9 +2057,9 @@ AddFeatureChoice(
       source: ["UA:CFV", 12],
       description:
         "\n   The wearer of my talisman adds 1d4 to saving throw rolls in which they lack proficiency",
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
-          9 <= classes.known.warlock.level &&
+          classes.known.warlock.level >= 9 &&
           "pact of the talisman" ==
             GetFeatureChoice("class", "warlock", "pact boon")
         );
@@ -2017,7 +2079,7 @@ AddFeatureChoice(
         "To be able to do this, I have to see the attacker and it has to be within 30 ft of me",
         "I deal my Cha mod in psychic damage (min 1) and push it 10 ft away from the talisman",
       ]),
-      prereqeval: function (e) {
+      prereqeval: function (v) {
         return (
           "pact of the talisman" ==
           GetFeatureChoice("class", "warlock", "pact boon")
@@ -2063,10 +2125,10 @@ AddFeatureChoice(
       description: "",
       calcChanges: {
         spellList: [
-          function (e, a, t) {
-            "wizard" === a &&
-              -1 === t.indexOf("bonus") &&
-              (e.extraspells = e.extraspells.concat([
+          function (spList, spName, spType) {
+            "wizard" === spName &&
+              -1 === spType.indexOf("bonus") &&
+              (spList.extraspells = spList.extraspells.concat([
                 "augury",
                 "enhance ability",
                 "speak with dead",
