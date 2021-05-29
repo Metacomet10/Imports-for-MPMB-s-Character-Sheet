@@ -2728,7 +2728,7 @@ AddWarlockInvocation("Improved Pact Weapon (prereq: Pact of the Blade)", {
 	name : "Improved Pact Weapon",
 	description : desc([
 		"I can use any pact weapon I create as my spellcasting focus for warlock spells",
-		"Any pact weapon I create has a +1 magic weapon, if it isn't already a magic weapon",
+		"Any pact weapon I create is a +1 magic weapon, if it isn't already a magic weapon",
 		"I can now also conjure a shortbow, longbow, or light or heavy crossbow as my pact weapon"
 	]),
 	source : ["X", 57],
@@ -4596,7 +4596,6 @@ CreatureList["hound of ill omen"] = { // Stats for the Sorcerer (Shadow Magic) f
 	source : ["X", 51],
 	size : 3,
 	type : "Monstrosity",
-	subtype : "",
 	alignment : "Unaligned",
 	ac : 14,
 	hp : 37,
@@ -4650,7 +4649,6 @@ CreatureList["tiny servant"] = { // Stats for the Tiny Servant spell (contains c
 	source : ["X", 169],
 	size : 5,
 	type : "Construct",
-	subtype : "",
 	alignment : "Unaligned",
 	ac : 15,
 	hp : 10,
